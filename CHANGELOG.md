@@ -6,6 +6,12 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-21
+
+### Changed
+
+- README documents the release procedure, including the constraint that made the first attempt fail: npm trusted publishing cannot create a package's first version, because a trusted publisher can only be configured on a package that already exists (`ENEEDAUTH`, npm/cli#8544). It also records the `actions/setup-node` `registry-url` gotcha, which writes an `_authToken` line that expands to empty and silently prevents the OIDC exchange.
+
 ## [0.1.0] - 2026-09-21
 
 ### Added
