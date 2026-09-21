@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22, 24]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Check (tests, types, format, package contents)
+        run: npm run check
+      - name: Upload package manifest
+        if: always() && matrix.node == 22
+        run: npm pack --dry-run --json > pack.json
+      - name: Upload package manifest artifact
+        if: always() && matrix.node == 22
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-pack-manifest
+          path: pack.json
+
+  contract:
+    name: Envelope and purity contract
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # These two tests carry the reason this package exists: one keeps the
+      # response contract whole, the other keeps ecosystem knowledge out of the
+      # core. Run them as their own job so a failure is attributable at a glance.
+      - name: Contract enforced
+        run: |
+          npx tsx --test test/purity.test.ts
+          npx tsx --test test/result.test.ts
