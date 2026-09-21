@@ -1,6 +1,6 @@
 {
   "name": "pi-helper-core",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Ecosystem-neutral core for pi language helper extensions: result envelope, bounded command runner, risk classification, completion gates, artifact staleness, and test selection",
   "type": "module",
   "license": "Apache-2.0",

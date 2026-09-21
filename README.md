@@ -104,11 +104,11 @@ npm run check         # test + typecheck + format:check + pack-check
 
 ## 상태
 
-- `0.1.0`, **아직 npm에 배포하지 않음**
+- `0.1.2`, npm에 배포됨(`latest`).
 - TypeScript 소스를 그대로 export합니다(`exports: "./src/index.ts"`). pi 확장 생태계가 TS를 직접 로드하므로 빌드 단계를 두지 않습니다.
 - 소비자: `pi-rust-helper`(파일럿), `pi-ros-helper`, `pi-python-helper` 모두 `^0.1.1`을 의존한다(2026-09-21).
   - `pi-python-helper`: envelope/runner/TDD/번들/증거/staleness/selection 이관 완료.
   - `pi-ros-helper`: envelope/runner/TDD/증거 이관 완료.
-  - 알려진 seam 부족분(코어 0.2 후보)은 `pi-rust-helper/DEVELOPMENT-PLAN.md`의 "R1 실현" 참고:
-    범용 안전 override(`--frozen`/`--locked`) 과다, `summarizeValidation`의 고정 단계 형태,
-    바이너리 mtime staleness·CTest 타겟 선별 미지원.
+  - 알려진 seam 부족분은 `pi-rust-helper/DEVELOPMENT-PLAN.md`의 "R1 실현" 참고:
+    범용 안전 override(`--frozen`/`--locked`) 과다는 0.1.2에서 수정됨,
+    `summarizeValidation`의 고정 단계 형태, 바이너리 mtime staleness·CTest 타겟 선별 미지원은 남음.

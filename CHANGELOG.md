@@ -6,6 +6,12 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-09-21
+
+### Fixed
+
+- `classifyCommand` no longer treats `--frozen`, `--locked`, or `--list` as read-only flags. They only pin inputs or request a listing, so a state-changing command they qualify (`uv sync --frozen`, `cargo build --locked`) was reported as `read`, which would let an environment mutation run without the opt-in its risk class requires. Only `--check`, `--dry-run`, and `--collect-only` remain universal safe overrides.
+
 ## [0.1.1] - 2026-09-21
 
 ### Changed
