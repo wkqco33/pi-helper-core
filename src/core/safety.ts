@@ -31,7 +31,11 @@ export interface SafetyRules {
 export const UNIVERSAL_SAFE_OVERRIDES: RegExp[] = [
   /\bgit\s+(?:diff|log|status|show|rev-parse|ls-files|cat-file|describe|rev-list)\b/,
   /\bgit\s+branch\s+--show-current\b/,
-  /(?:^|\s)--(?:check|dry-run|collect-only|list|frozen|locked)\b/,
+  // Only flags that describe the command itself (`--check`, `--dry-run`,
+  // `--collect-only`) make it read-only. `--frozen`/`--locked`/`--list` merely
+  // pin inputs or request a listing, so a state-changing command they qualify
+  // (for example `uv sync --frozen`) must keep its adapter-classified risk.
+  /(?:^|\s)--(?:check|dry-run|collect-only)\b/,
 ];
 
 /**

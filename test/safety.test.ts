@@ -19,7 +19,25 @@ test('a read-only flag does not inherit the risk of the command it qualifies', (
   assert.equal(classifyCommand('git log --oneline').risk, 'read');
   assert.equal(classifyCommand('some-tool --dry-run').risk, 'read');
   assert.equal(classifyCommand('some-tool --check').risk, 'read');
+  assert.equal(classifyCommand('some-tool --collect-only').risk, 'read');
   assert.equal(splitCommandSegments('a && b | c; d').length, 4);
+});
+
+test('a lock-only flag does not hide an adapter mutation', () => {
+  // `--frozen`/`--locked`/`--list` pin inputs or request a listing; they do not
+  // make the command they qualify read-only, so an adapter's mutating rule must
+  // still win (`uv sync --frozen` changes the environment).
+  const rules = {
+    patterns: [
+      { pattern: /\bsync\b/, risk: 'mutating' as const, reason: 'changes the environment.' },
+    ],
+  };
+  for (const command of ['sync --frozen', 'sync --locked', 'sync --list']) {
+    assert.equal(classifyCommand(command, rules).risk, 'mutating', `${command} should be mutating`);
+  }
+  // A flag that does describe the command still applies.
+  assert.equal(classifyCommand('sync --check', rules).risk, 'read');
+  assert.equal(classifyCommand('sync --dry-run', rules).risk, 'read');
 });
 
 test('universal hazards are always applied without adapter rules', () => {
