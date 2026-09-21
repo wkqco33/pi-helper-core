@@ -79,6 +79,29 @@ npm run typecheck
 npm run check         # test + typecheck + format:check + pack-check
 ```
 
+## 릴리스
+
+`package.json` 버전을 올리고 CHANGELOG를 옮긴 뒤 `v<version>` 태그를 푸시하면 `.github/workflows/publish.yml`이 npm provenance와 함께 배포합니다.
+
+### 최초 배포만 수동이어야 합니다 (중요)
+
+**npm Trusted Publishing(OIDC)은 패키지의 최초 버전을 만들 수 없습니다.** trusted publisher는 이미 존재하는 패키지에만 설정할 수 있기 때문에, 신규 패키지의 첫 배포는 OIDC로 실패하고 `ENEEDAUTH`가 나옵니다(npm/cli#8544, npm/documentation#1926). 이 오류는 인증 설정 오류처럼 보이지만 실제 원인은 그게 아닙니다.
+
+최초 1회만:
+
+1. `npm login` (패키지 소유자 계정)
+2. `npm publish --access public` — **provenance 없이** 올라갑니다
+3. npmjs.com → 패키지 → Settings → **Trusted Publisher** → GitHub Actions
+   - Organization or user: `wkqco33`
+   - Repository: `pi-helper-core`
+   - Workflow filename: `publish.yml` (경로가 아니라 파일명만, 대소문자 구분)
+   - Allowed actions: `npm publish`
+4. 이후 태그 푸시는 OIDC + provenance로 자동 배포됩니다
+
+부트스트랩 후에는 Settings → Publishing access에서 **"Require two-factor authentication and disallow tokens"**를 켜 두는 것이 권장됩니다.
+
+> 워크플로에 `actions/setup-node`의 `registry-url`을 쓰지 마세요. `_authToken=${NODE_AUTH_TOKEN}` 줄을 써 넣고, 토큰이 없을 때 빈 값으로 확장되어 **OIDC 대신 일반 인증을 시도**합니다(ENEEDAUTH/E404의 가장 흔한 원인).
+
 ## 상태
 
 - `0.1.0`, **아직 npm에 배포하지 않음**
