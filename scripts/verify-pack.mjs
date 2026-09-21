@@ -6,6 +6,7 @@
  * impossible to fix after `npm publish`.
  */
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
 const REQUIRED = ['package.json', 'README.md', 'LICENSE', 'CHANGELOG.md', 'src/index.ts'];
 const FORBIDDEN_PREFIXES = ['test/', 'node_modules/'];
@@ -14,8 +15,20 @@ const raw = execFileSync('npm', ['pack', '--dry-run', '--json'], {
   encoding: 'utf8',
   stdio: ['ignore', 'pipe', 'ignore'],
 });
-const [manifest] = JSON.parse(raw);
+
+// npm changed this shape between builds: 11.x returns an array of manifests,
+// while a newer build returns an object keyed by package name. The publish
+// workflow installs npm@latest, so both have to work here.
+const parsed = JSON.parse(raw);
+const manifest = Array.isArray(parsed) ? parsed[0] : Object.values(parsed)[0];
+
+if (!manifest || !Array.isArray(manifest.files)) {
+  console.error(`unexpected \`npm pack --json\` shape: ${raw.slice(0, 200)}`);
+  process.exit(1);
+}
+
 const files = new Set(manifest.files.map((entry) => entry.path));
+const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
 const problems = [];
 for (const required of REQUIRED) {
@@ -25,14 +38,8 @@ for (const prefix of FORBIDDEN_PREFIXES) {
   const leaked = [...files].filter((path) => path.startsWith(prefix));
   if (leaked.length > 0) problems.push(`must not ship: ${leaked.slice(0, 3).join(', ')}`);
 }
-
-if (
-  manifest.version !==
-  JSON.parse(
-    execFileSync('node', ['-p', 'JSON.stringify(require("./package.json"))'], { encoding: 'utf8' }),
-  ).version
-) {
-  problems.push('package.json version does not match the packed manifest');
+if (manifest.version !== pkg.version) {
+  problems.push(`packed version ${manifest.version} does not match package.json ${pkg.version}`);
 }
 
 if (problems.length > 0) {
