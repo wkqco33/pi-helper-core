@@ -80,7 +80,8 @@ export const UNIVERSAL_RISK_PATTERNS: RiskRule[] = [
   // Mutating: recoverable, but changes project, repository, or remote state.
   {
     risk: 'mutating',
-    pattern: /\bgit\s+(?:commit|add|checkout|switch|restore|stash|merge|rebase|push|tag|init|rm|mv)\b/,
+    pattern:
+      /\bgit\s+(?:commit|add|checkout|switch|restore|stash|merge|rebase|push|tag|init|rm|mv)\b/,
     reason: 'Changes repository or remote state.',
   },
   {
