@@ -82,6 +82,17 @@ test('riskOf classifies an argument vector without a shell string', () => {
   assert.equal(riskOf(['git', 'push', '--force']), 'irreversible');
 });
 
+test('ephemeral --rm flags and path segments do not false-match rm/mv', () => {
+  assert.equal(classifyCommand('docker run --rm -it ubuntu ls -la').risk, 'read');
+  assert.equal(classifyCommand('docker run --rm -v /tmp:/tmp myimg pytest -rA -f').risk, 'read');
+  assert.equal(classifyCommand('docker compose run --rm --remove-orphans app pytest').risk, 'read');
+  assert.equal(classifyCommand('podman run --rm --init alpine uname -a').risk, 'read');
+  assert.equal(classifyCommand('ls -la /ws/src/rm/mv/chmod').risk, 'read');
+  assert.equal(classifyCommand('sudo rm -rf /tmp/foo').risk, 'irreversible');
+  assert.equal(classifyCommand('find . -name "*.tmp" -exec rm -f {} +').risk, 'irreversible');
+  assert.equal(classifyCommand('rm foo.txt').risk, 'mutating');
+});
+
 test('every universal pattern documents why the operation is not recoverable', () => {
   for (const entry of UNIVERSAL_RISK_PATTERNS) {
     assert.ok(entry.reason.length > 10, `rule for ${entry.pattern} needs a reason`);

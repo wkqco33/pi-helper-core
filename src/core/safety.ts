@@ -43,6 +43,9 @@ export const UNIVERSAL_SAFE_OVERRIDES: RegExp[] = [
  * system, containers, and databases behave the same everywhere. Anything that
  * names a package manager belongs to the adapter.
  */
+const CMD_PREFIX =
+  /(?:^\s*|(?<![\w./-])(?:sudo|env|xargs|nohup|time|nice|ionice|command|exec|-exec)\s+(?:-[A-Za-z0-9-]+\s+)*(?:[A-Za-z_][A-Za-z0-9_]*=\S+\s+)*|(?:ba|z|da|k)?sh\s+-[a-zA-Z]*c\s+['"]?\s*)(?:(?:\/usr)?\/s?bin\/)?/;
+
 export const UNIVERSAL_RISK_PATTERNS: RiskRule[] = [
   // Irreversible: cannot be undone by a local revert.
   {
@@ -57,7 +60,9 @@ export const UNIVERSAL_RISK_PATTERNS: RiskRule[] = [
   },
   {
     risk: 'irreversible',
-    pattern: /\brm\b[^&|;]*-[a-z]*[rf][a-z]*/,
+    pattern: new RegExp(
+      `${CMD_PREFIX.source}rm\\s+(?:-[a-zA-Z]+\\s+|--[a-z-]+\\s+)*(?:-[a-zA-Z]*[rfRF][a-zA-Z]*\\b|--recursive\\b|--force\\b)`,
+    ),
     reason: 'Recursive or forced deletion is not recoverable.',
   },
   {
@@ -75,12 +80,12 @@ export const UNIVERSAL_RISK_PATTERNS: RiskRule[] = [
   // Mutating: recoverable, but changes project, repository, or remote state.
   {
     risk: 'mutating',
-    pattern: /\bgit\s+(?:commit|add|checkout|switch|restore|stash|merge|rebase|push|tag|init)\b/,
+    pattern: /\bgit\s+(?:commit|add|checkout|switch|restore|stash|merge|rebase|push|tag|init|rm|mv)\b/,
     reason: 'Changes repository or remote state.',
   },
   {
     risk: 'mutating',
-    pattern: /\b(?:rm|mv|chmod|chown|truncate)\b/,
+    pattern: new RegExp(`${CMD_PREFIX.source}(?:rm|mv|chmod|chown|truncate)\\b`),
     reason: 'Changes files on disk.',
   },
 ];
