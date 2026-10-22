@@ -6,6 +6,12 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-10-22
+
+### Fixed
+
+- `core/safety.ts`: command-token matching anchored to command position (`CMD_PREFIX`) and `(?<![\w./-])`. Ephemeral flags such as `--rm`, `--force-rm`, `--remove-orphans`, `--init` (e.g. `docker run --rm`, `docker compose run --rm`, `podman run --rm`) and path segments (e.g. `/ws/src/rm/mv`) are no longer falsely matched as `rm` or `mv`.
+
 ## [0.1.3] - 2026-10-22
 
 ### Added
