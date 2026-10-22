@@ -6,6 +6,19 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-22
+
+### Added
+
+- `core/transport.ts`: a command-transport seam so one registration redirects every helper's subprocesses without touching a call site. `runCommand()` consults the transport once, maps `cwd` through `transport.mapCwd()`, and otherwise keeps the local path byte-identical. The registry is stored on `globalThis` under `Symbol.for('pi-helper-core.transport')`, because npm can hoist two copies of this package into one process and only a registered global key is shared between them.
+- `runLocalCommand()`: the local runner extracted as a separate export, because a transport that shells out would otherwise route its own client process back into itself.
+- `mapPathPrefix()`: segment-boundary path rewriting with a fail-closed contract. A plain prefix replacement turns `/app` into `/application`-style corruption, and returning a fallback directory would run a build or a test in the wrong tree, so an unmappable directory throws instead.
+- `test/transport.test.ts`: routing, fail-closed mapping, local-path regression, registry identity, and the lookalike-sibling case.
+
+### Changed
+
+- `runCommand()` is now the only place a transport is consulted, which is what makes remote execution a one-line change for `pi-ros-helper`, `pi-python-helper`, and `pi-rust-helper` rather than a per-helper refactor.
+
 ## [0.1.2] - 2026-09-21
 
 ### Fixed

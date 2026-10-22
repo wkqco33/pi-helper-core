@@ -30,7 +30,21 @@ export {
   type ToolResult,
 } from './core/result.ts';
 
-export { isSpawnFailure, runCommand, type RunOptions, type RunResult } from './core/runner.ts';
+export {
+  isSpawnFailure,
+  runCommand,
+  runLocalCommand,
+  type RunOptions,
+  type RunResult,
+} from './core/runner.ts';
+
+export {
+  getTransport,
+  mapPathPrefix,
+  setTransport,
+  type CommandSpec,
+  type CommandTransport,
+} from './core/transport.ts';
 
 export {
   classifyCommand,

@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { getTransport } from './transport.ts';
 
 export interface RunOptions {
   cwd: string;
@@ -33,8 +34,32 @@ function appendLimited(current: string, chunk: string, maxBytes: number): [strin
  * `args`, never through a shell string, and every call must stay inside a
  * timeout and an output cap. Killing the whole process group matters because a
  * toolchain driver spawns compilers and linkers that would otherwise survive.
+ *
+ * This is the only place a transport is consulted: every helper routes through
+ * here, so one branch makes all of them remote-capable. The local path below is
+ * untouched when no transport is registered.
  */
 export async function runCommand(
+  executable: string,
+  args: string[],
+  options: RunOptions,
+): Promise<RunResult> {
+  const transport = getTransport();
+  if (transport) {
+    // `mapCwd` may throw; that rejects the call rather than running the command
+    // in a directory the transport cannot represent.
+    return transport.exec({ ...options, executable, args, cwd: transport.mapCwd(options.cwd) });
+  }
+  return runLocalCommand(executable, args, options);
+}
+
+/**
+ * Runs a command on this machine, ignoring any registered transport.
+ *
+ * A transport that shells out needs this: calling `runCommand` from inside a
+ * transport would route the transport's own client process back into itself.
+ */
+export async function runLocalCommand(
   executable: string,
   args: string[],
   options: RunOptions,
